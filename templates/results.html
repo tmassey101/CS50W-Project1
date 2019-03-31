@@ -1,0 +1,9 @@
+<h1>Result page</h1>
+
+<ul>
+    {% for book in query %}
+        <li>
+            <p>ISBN:{{ book.isbn }} Title:{{ book.title }} Author:{{ book.author }} Year:{{ book.year }}</p>
+        </li>
+    {% endfor %}
+</ul>

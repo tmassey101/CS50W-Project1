@@ -43,19 +43,30 @@ def index():
         curUser = submitUser
 
     return render_template("index.html", curUser=curUser)
-    
-
 
 #msin page, begin session if no existing user (or keep logged in as user)
-#@app.route("/<string:name>")
-#def userTest(name):
+@app.route("/search", methods=["POST"])
+def search():
 
-#    curUser = name
-#    #return f"Hello, {name}!"
-#    return render_template("index.html", curUser=curUser)
+    searchText = []
+    
+    #if request.method == "POST":
+    searchText = request.form.get("searchText")
+    searchString = "%" + searchText + "%"
+    
+    query = db.execute("SELECT isbn,title,author,year FROM books WHERE isbn LIKE :searchText OR title LIKE :searchText OR author LIKE :searchText LIMIT 20",{"searchText": searchString}).fetchall()
+    
+    for book in query:
+        print(book)
 
+    return render_template("results.html", query=query)
+    
+    
 
-
+    
+    #for i in query:
+    #print(f"ISBN: {query.isbn} Title:{query.title}, Author: {query.author}, Year: {query.year}.") # for every row, print out the details
+    
 
 @app.route("/test")
 def keytest():
@@ -90,3 +101,6 @@ def keytest():
     #result = result['id']
 
     return str(result)
+
+if __name__ == '__main__':
+   app.run(debug = True)
