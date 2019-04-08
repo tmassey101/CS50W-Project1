@@ -41,11 +41,45 @@ def index():
     if request.method == "POST":
         
         submitUser = request.form.get("submitUser")
-        curUser = submitUser
+        submitPassword = request.form.get("submitPassword")
+        
+        query = db.execute("SELECT username, password FROM users WHERE username LIKE :username",{"username": submitUser}).fetchall()
+
+        print(submitPassword)
+        print(query)
+
 
     return render_template("index.html", curUser=curUser)
 
-#msin page, begin session if no existing user (or keep logged in as user)
+@app.route("/register", methods=["POST"])
+def register():
+
+    submitUser = request.form.get("submitUser")
+    submitPassword = request.form.get("submitPassword")
+    submitEmail = request.form.get("submitEmail")
+
+    
+    query = db.execute("SELECT * FROM users WHERE username = :username",{"username": submitUser}).fetchone()
+    
+    if query is None:
+
+        db.execute("INSERT INTO users (username, password, email) VALUES (:submitUser, :submitPassword, :submitEmail)",
+            {"submitUser": submitUser, "submitPassword": submitPassword, "submitEmail": submitEmail})
+        db.commit()
+
+        print(f"Added user: {submitUser}.")
+        return render_template("index.html", curUser=submitUser)
+        
+    return (f"My own error. User {submitUser} already exists.")
+
+    
+
+    
+
+
+
+
+#search DB for book details and return to results page
 @app.route("/search", methods=["POST"])
 def search():
 
@@ -82,7 +116,6 @@ def isbn(isbn):
     author = books[3]
     year = books[4]
 
-    #print("title:", title)
     grresult = goodreadsapi(isbn)
 
     average_score = grresult['average_rating']
