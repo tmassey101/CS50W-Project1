@@ -2,10 +2,11 @@ import os
 
 from flask import Flask, session, jsonify, request, render_template
 from flask_session import Session
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, inspect
 from sqlalchemy.orm import scoped_session, sessionmaker
 import requests
 import json
+from json import dumps
 
 app = Flask(__name__)
 
@@ -64,9 +65,46 @@ def search():
     
 
     
-    #for i in query:
-    #print(f"ISBN: {query.isbn} Title:{query.title}, Author: {query.author}, Year: {query.year}.") # for every row, print out the details
+@app.route("/api/<string:isbn>", methods = ["GET"])
+def isbn(isbn):
+
+    result = []
+
+    isbnsearch = str(isbn)
     
+    books = db.execute("SELECT * FROM books WHERE isbn = :isbn", {"isbn" : isbnsearch}).fetchone()
+    
+    print(books)
+
+    id = books[0]
+    isbn = books[1]
+    title = books[2]
+    author = books[3]
+    year = books[4]
+
+    #print("title:", title)
+    grresult = goodreadsapi(isbn)
+
+    average_score = grresult['average_rating']
+    review_count = grresult['reviews_count']
+
+    result =  json.dumps({"title": title, "author": author, "year": year, "isbn": isbn, "review_count": review_count, "average_score": average_score})
+    
+    return result
+
+def goodreadsapi(isbn):
+        
+    gr_key = "lkPQBdBth7EI3WJjFYWawg"
+
+    results = requests.get("https://www.goodreads.com/book/review_counts.json", params={"key": gr_key, "isbns": "9781632168146"})
+    
+    results = results.json()
+    results = results['books']
+    
+    for result in results:
+        response = {'average_rating': result['average_rating'], "reviews_count": result['reviews_count']}
+
+    return response
 
 @app.route("/test")
 def keytest():
@@ -95,8 +133,7 @@ def keytest():
     json_r = json.loads(r)
 
     #print(type(result))
-    result = str(json_r['books'][0]['average_rating'])
-    print("Book Avg:  "+ result)
+    result = json_r['books'][0]
 
     #result = result['id']
 
