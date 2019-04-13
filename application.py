@@ -1,6 +1,6 @@
 import os
 
-from flask import Flask, session, jsonify, request, render_template
+from flask import Flask, session, jsonify, request, render_template, redirect, url_for
 from flask_session import Session
 from sqlalchemy import create_engine, inspect
 from sqlalchemy.orm import scoped_session, sessionmaker
@@ -25,31 +25,59 @@ db = scoped_session(sessionmaker(bind=engine))
 
 gr_key = "lkPQBdBth7EI3WJjFYWawg"
 
-
+curUser = []
 
 #msin page, begin session if no existing user (or keep logged in as user)
+
 @app.route("/", methods=["GET", "POST"])
 def index():
 
-    curUser = []
+    curUser = []       
     
     if session.get("curUser") is None:
         session["curUser"] = []
 
-        
-    
     if request.method == "POST":
+
+        if request.form.get == "logout":
+            session["curUser"] = []
+            return "logging out"
+
+        if request.form.get("submitUser") is None:
+
+            return render_template("index.html", curUser=[])
+            
         
         submitUser = request.form.get("submitUser")
         submitPassword = request.form.get("submitPassword")
         
-        query = db.execute("SELECT username, password FROM users WHERE username LIKE :username",{"username": submitUser}).fetchall()
+        query = db.execute("SELECT username, password FROM users WHERE username LIKE :username",{"username": submitUser}).fetchone()
+
+        queryuser = query[0]
+        querypassword = query[1]
 
         print(submitPassword)
         print(query)
+        print(querypassword)
+
+        
+        if (querypassword == submitPassword):
+    
+            print("Match and should return index")
+            return render_template("index.html", curUser=submitUser)
+        
+
+    print("No match but should return index")
+    return render_template("index.html", curUser=[])
 
 
-    return render_template("index.html", curUser=curUser)
+@app.route("/logout", methods=["POST"])
+def logout():
+
+    session["curUser"] = []
+    return redirect(url_for('/'))
+
+
 
 @app.route("/register", methods=["POST"])
 def register():
