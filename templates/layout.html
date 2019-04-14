@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+
+<head>
+ 
+   <p>My webpage name here</p>
+   <style>
+    h2 {color: red}
+    .header {background-color: lightblue; color: blue}
+    .footer {background-color: lightblue; color: blue} 
+    </style>
+
+</head>
+
+<body>
+
+<!--
+
+-->
+<div class="header">
+    <P>Header Here</P>
+</div>
+
+<div class="container">
+      
+      <br>
+      {% block content %}{% endblock %}
+      <br>
+      
+</div>
+
+<div class="footer">
+    <p>Footer here</p>
+</div>
+
+</body>
